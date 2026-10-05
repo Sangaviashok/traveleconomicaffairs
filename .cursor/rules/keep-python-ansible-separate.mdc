@@ -1,0 +1,15 @@
+---
+description: Keep Python and Ansible practice out of the restaurant app
+alwaysApply: true
+---
+
+# Separate Python / Ansible from city-eats
+
+city-eats is only the Bengaluru restaurant website (`src/`, Vite, http://localhost:5173).
+
+- Never add Python scripts, Ansible playbooks, or a `lessons/` folder to this repo.
+- Python and Ansible practice belongs only in `/Users/sangavia/ansible-python-lesson`.
+- Do not import, run, or wire that lesson into `npm run dev` or `src/`.
+- If the user wants Ansible or Python exercises, work in that lesson folder (or ask to switch there). Do not mix it with restaurant features.
+
+Example: do not create `lessons/python-ansible/` or `hello.yml` inside city-eats.
