@@ -9,6 +9,7 @@ import {
   visibleReviews,
 } from './honesty'
 import { MapView } from './MapView'
+import { StayBudget } from './StayBudget'
 
 type KindFilter = 'all' | PlaceKind
 
@@ -24,6 +25,10 @@ function summary(stays: number, cafes: number): string {
 export function PlaceList({ flagged }: { flagged: ReadonlySet<string> }) {
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState<KindFilter>('all')
+  const [budgetId, setBudgetId] = useState(
+    () => places.find((place) => place.kind === 'stay')?.id ?? '',
+  )
+  const stayChoices = places.filter((place) => place.kind === 'stay')
 
   const stays = useMemo(() => {
     return places
@@ -55,6 +60,8 @@ export function PlaceList({ flagged }: { flagged: ReadonlySet<string> }) {
         </p>
         <p className="city-note">{city.note}</p>
       </header>
+
+      <StayBudget stays={stayChoices} selectedId={budgetId} onSelect={setBudgetId} />
 
       <div className="toolbar">
         <label className="search">

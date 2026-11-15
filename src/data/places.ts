@@ -17,6 +17,7 @@ export type Place = {
   id: string
   kind: PlaceKind
   name: string
+  nightlyInr?: number
   area: string
   address: string
   lat: number
@@ -38,6 +39,7 @@ export const places: Place[] = [
     id: 'hindustan-beach-retreat',
     kind: 'stay',
     name: 'Hindustan Beach Retreat',
+    nightlyInr: 4500,
     area: 'Papanasam',
     address: 'Papanasam Beach - Varkala Road, Chaluvila, Varkala, Kerala 695311',
     lat: 8.7328506,
@@ -75,6 +77,7 @@ export const places: Place[] = [
     id: 'the-gateway-hotel',
     kind: 'stay',
     name: 'The Gateway Hotel',
+    nightlyInr: 8000,
     area: 'Papanasam',
     address: 'Varkala - Kallambalam Road, Chaluvila, Varkala, Kerala 695311',
     lat: 8.7344776,
@@ -124,6 +127,7 @@ export const places: Place[] = [
     id: 'deshadan',
     kind: 'stay',
     name: 'Deshadan',
+    nightlyInr: 5200,
     area: 'North Cliff',
     address: 'Cliff 2nd street, Varkala, Kerala 695311',
     lat: 8.7392468,
@@ -160,6 +164,7 @@ export const places: Place[] = [
     id: 'blue-water',
     kind: 'stay',
     name: 'Blue Water',
+    nightlyInr: 3200,
     area: 'Edava',
     address: 'Anjumukku - Odayam Road, Edava, Varkala, Kerala 695311',
     lat: 8.7502824,

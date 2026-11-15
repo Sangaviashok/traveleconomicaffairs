@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { osmUrl, type Place, type Review } from './data/places'
+import { osmUrl, places, type Place, type Review } from './data/places'
+import { StayBudget } from './StayBudget'
 import { heldReviews, visibleReviews } from './honesty'
 import { MapView } from './MapView'
 
@@ -34,6 +35,13 @@ export function PlacePage({
       </p>
       <h1>{place.name}</h1>
       <p className="address">{place.address}</p>
+
+      {place.kind === 'stay' ? (
+        <StayBudget
+          stays={places.filter((item) => item.kind === 'stay')}
+          selectedId={place.id}
+        />
+      ) : null}
 
       <div className="place-layout">
         <div>
