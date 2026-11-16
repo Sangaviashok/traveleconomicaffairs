@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react'
-import { osmUrl, places, type Place, type Review } from './data/places'
+import { formatInr, seasonHike } from './budget'
+import {
+  monsoonMonths,
+  osmUrl,
+  places,
+  sampleRoomRates,
+  vacationSeasonMonths,
+  type Place,
+  type Review,
+} from './data/places'
 import { StayBudget } from './StayBudget'
 import { heldReviews, visibleReviews } from './honesty'
 import { MapView } from './MapView'
@@ -37,10 +46,13 @@ export function PlacePage({
       <p className="address">{place.address}</p>
 
       {place.kind === 'stay' ? (
-        <StayBudget
-          stays={places.filter((item) => item.kind === 'stay')}
-          selectedId={place.id}
-        />
+        <>
+          <SeasonRates place={place} />
+          <StayBudget
+            stays={places.filter((item) => item.kind === 'stay')}
+            selectedId={place.id}
+          />
+        </>
       ) : null}
 
       <div className="place-layout">
@@ -128,6 +140,25 @@ export function PlacePage({
         </div>
       </div>
     </article>
+  )
+}
+
+function SeasonRates({ place }: { place: Place }) {
+  const rates = sampleRoomRates(place)
+  if (!rates) return null
+  const hike = seasonHike(rates.seasonInr, rates.nonSeasonInr)
+
+  return (
+    <section className="season-rates" aria-labelledby="season-heading">
+      <h2 id="season-heading">Sample season rates</h2>
+      <p className="season-note">
+        Season sample {formatInr(rates.seasonInr)} a night, {vacationSeasonMonths}.
+        Non-season sample {formatInr(rates.nonSeasonInr)} a night in the monsoon
+        months, {monsoonMonths}. The season sample is {formatInr(hike.amount)} a
+        night higher ({hike.percent}%). These are planning figures, not a live or
+        booked tariff.
+      </p>
+    </section>
   )
 }
 

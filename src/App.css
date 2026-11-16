@@ -321,12 +321,28 @@
 .address,
 .score,
 .excerpt,
-.review-top p {
+.review-top p,
+.season-hint,
+.season-note {
   color: var(--muted);
 }
 
-.address {
+.address,
+.season-hint {
   font-size: 0.95rem;
+}
+
+.season-hint {
+  margin-top: 8px;
+}
+
+.season-rates {
+  max-width: 40rem;
+  margin: 0 0 22px;
+}
+
+.season-rates h2 {
+  margin-bottom: 6px;
 }
 
 .score {

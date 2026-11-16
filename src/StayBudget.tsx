@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { formatInr, stayBudget, type Arrival } from './budget'
-import type { Place } from './data/places'
+import {
+  ROOM_GST_LIMIT,
+  formatInr,
+  seasonHike,
+  stayBudget,
+  type Arrival,
+  type StayBudgetQuote,
+} from './budget'
+import { monsoonMonths, sampleRoomRates, seasonPeakNote, vacationSeasonMonths, type Place } from './data/places'
 
 export function StayBudget({
   stays,
@@ -12,17 +19,19 @@ export function StayBudget({
   onSelect?: (id: string) => void
 }) {
   const selected = stays.find((place) => place.id === selectedId) ?? stays[0]
-  const nightly = selected?.nightlyInr ?? 2800
+  const rates = selected ? sampleRoomRates(selected) : null
+  const nonSeasonInr = rates?.nonSeasonInr ?? selected?.nightlyInr ?? 2800
+  const seasonInr = rates?.seasonInr
   const [nights, setNights] = useState(4)
   const [guests, setGuests] = useState(2)
-  const [roomPerNight, setRoomPerNight] = useState(nightly)
+  const [roomPerNight, setRoomPerNight] = useState(nonSeasonInr)
   const [foodPerPersonPerDay, setFoodPerPersonPerDay] = useState(700)
   const [autosPerDay, setAutosPerDay] = useState(1)
   const [arrival, setArrival] = useState<Arrival>('airport-taxi')
 
   useEffect(() => {
-    setRoomPerNight(nightly)
-  }, [nightly, selected?.id])
+    setRoomPerNight(nonSeasonInr)
+  }, [nonSeasonInr, selected?.id])
 
   const quote = useMemo(
     () =>
@@ -37,9 +46,48 @@ export function StayBudget({
     [nights, guests, roomPerNight, foodPerPersonPerDay, arrival, autosPerDay],
   )
 
+  const seasonQuote = useMemo(
+    () =>
+      seasonInr == null
+        ? null
+        : stayBudget({
+            nights,
+            guests,
+            roomPerNight: seasonInr,
+            foodPerPersonPerDay,
+            arrival,
+            autosPerDay,
+          }),
+    [nights, guests, seasonInr, foodPerPersonPerDay, arrival, autosPerDay],
+  )
+
+  const nonSeasonQuote = useMemo(
+    () =>
+      seasonInr == null
+        ? null
+        : stayBudget({
+            nights,
+            guests,
+            roomPerNight: nonSeasonInr,
+            foodPerPersonPerDay,
+            arrival,
+            autosPerDay,
+          }),
+    [nights, guests, seasonInr, nonSeasonInr, foodPerPersonPerDay, arrival, autosPerDay],
+  )
+
   if (!selected) return null
 
-  const gstLabel = quote.gstRate === 0.18 ? 'GST 18%' : 'GST 5%'
+  const gstLabel = gstText(quote)
+  const hike = seasonInr == null ? null : seasonHike(seasonInr, nonSeasonInr)
+  const stayRateNote =
+    seasonInr != null && roomPerNight === seasonInr
+      ? ' at the season sample.'
+      : seasonInr != null && roomPerNight === nonSeasonInr
+        ? ' at the monsoon sample.'
+        : seasonInr != null
+          ? ' at the room rate entered above.'
+          : ''
 
   return (
     <section className="budget" aria-labelledby="budget-heading">
@@ -47,8 +95,8 @@ export function StayBudget({
         <h2 id="budget-heading">Overall stay budget</h2>
         <p>
           The total for sleeping at {selected.name}: the room, tax, meals in town,
-          and getting to Varkala. The room figure is a planning rate, not a live
-          tariff.
+          and getting to Varkala. Room figures are sample rates for planning, not a
+          live or booked tariff. {seasonPeakNote}
         </p>
       </div>
       <form className="budget-form" onSubmit={(event) => event.preventDefault()}>
@@ -96,6 +144,24 @@ export function StayBudget({
             }
           />
         </label>
+        {seasonInr != null ? (
+          <div className="filters budget-modes" role="group" aria-label="Sample room rate">
+            <button
+              type="button"
+              className={roomPerNight === seasonInr ? 'chip active' : 'chip'}
+              onClick={() => setRoomPerNight(seasonInr)}
+            >
+              Season sample
+            </button>
+            <button
+              type="button"
+              className={roomPerNight === nonSeasonInr ? 'chip active' : 'chip'}
+              onClick={() => setRoomPerNight(nonSeasonInr)}
+            >
+              Monsoon sample
+            </button>
+          </div>
+        ) : null}
         <label>
           Meals per person / day (₹)
           <input
@@ -146,8 +212,30 @@ export function StayBudget({
             <dt>Stay</dt>
             <dd>
               Room {formatInr(quote.room)} + {gstLabel} {formatInr(quote.gst)}
+              {stayRateNote}
             </dd>
           </div>
+          {seasonQuote && nonSeasonQuote && hike && seasonInr != null ? (
+            <>
+              <div>
+                <dt>Season sample</dt>
+                <dd>
+                  {formatRoomLine(seasonQuote)} at {formatInr(seasonInr)} a night, {vacationSeasonMonths}.{' '}
+                  {formatInr(hike.amount)} a night higher ({hike.percent}%) than the monsoon sample.
+                  {seasonQuote.gstRate === nonSeasonQuote.gstRate
+                    ? ''
+                    : ` The night is over ${formatInr(ROOM_GST_LIMIT)}, so this room line uses ${gstText(seasonQuote)} instead of ${gstText(nonSeasonQuote)}.`}
+                </dd>
+              </div>
+              <div>
+                <dt>Monsoon sample</dt>
+                <dd>
+                  {formatRoomLine(nonSeasonQuote)} at {formatInr(nonSeasonInr)} a night,{' '}
+                  {monsoonMonths}.
+                </dd>
+              </div>
+            </>
+          ) : null}
           <div>
             <dt>Local costs</dt>
             <dd>
@@ -177,4 +265,12 @@ export function StayBudget({
       </div>
     </section>
   )
+}
+
+function gstText(quote: StayBudgetQuote): string {
+  return quote.gstRate === 0.18 ? 'GST 18%' : 'GST 5%'
+}
+
+function formatRoomLine(quote: StayBudgetQuote): string {
+  return `Room ${formatInr(quote.room)} + ${gstText(quote)} ${formatInr(quote.gst)}`
 }

@@ -33,7 +33,7 @@ export type StayBudgetQuote = {
   total: number
 }
 
-const ROOM_GST_LIMIT = 7500
+export const ROOM_GST_LIMIT = 7500
 const AIRPORT_TAXI_ONE_WAY = 1600
 const TAXI_SEATS = 4
 const TRAIN_PER_PERSON_ONE_WAY = 50
@@ -101,4 +101,13 @@ const inr = new Intl.NumberFormat('en-IN', {
 
 export function formatInr(amount: number): string {
   return inr.format(amount)
+}
+
+export function seasonHike(
+  seasonInr: number,
+  nonSeasonInr: number,
+): { amount: number; percent: number } {
+  const amount = seasonInr - nonSeasonInr
+  const percent = nonSeasonInr === 0 ? 0 : Math.round((amount / nonSeasonInr) * 100)
+  return { amount, percent }
 }
