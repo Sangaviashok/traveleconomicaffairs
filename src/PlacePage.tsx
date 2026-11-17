@@ -51,6 +51,7 @@ export function PlacePage({
           <StayBudget
             stays={places.filter((item) => item.kind === 'stay')}
             selectedId={place.id}
+            compareSamples
           />
         </>
       ) : null}

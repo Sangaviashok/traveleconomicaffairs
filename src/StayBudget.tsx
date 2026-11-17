@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ROOM_GST_LIMIT,
   formatInr,
+  sampleTotalShift,
   seasonCalculation,
   seasonHike,
   stayBudget,
@@ -14,10 +15,12 @@ export function StayBudget({
   stays,
   selectedId,
   onSelect,
+  compareSamples = false,
 }: {
   stays: Place[]
   selectedId: string
   onSelect?: (id: string) => void
+  compareSamples?: boolean
 }) {
   const selected = stays.find((place) => place.id === selectedId) ?? stays[0]
   const rates = selected ? sampleRoomRates(selected) : null
@@ -219,7 +222,7 @@ export function StayBudget({
               {stayRateNote}
             </dd>
           </div>
-          {seasonQuote && nonSeasonQuote && hike && seasonInr != null ? (
+          {!compareSamples && seasonQuote && nonSeasonQuote && hike && seasonInr != null ? (
             <>
               <div>
                 <dt>Season sample</dt>
@@ -265,9 +268,31 @@ export function StayBudget({
               {formatInr(quote.transport)} transport = {formatInr(quote.total)}
             </dd>
           </div>
+          {compareSamples && seasonQuote && nonSeasonQuote ? (
+            <>
+              <SampleBudgetDetails label="Season sample" quote={seasonQuote} />
+              <SampleBudgetDetails label="Monsoon sample" quote={nonSeasonQuote} />
+              <div>
+                <dt>Price change</dt>
+                <dd>{sampleTotalShift(seasonQuote.total, nonSeasonQuote.total)}</dd>
+              </div>
+            </>
+          ) : null}
         </dl>
       </div>
     </section>
+  )
+}
+
+function SampleBudgetDetails({ label, quote }: { label: string; quote: StayBudgetQuote }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>
+        Room {formatInr(quote.room)} + {gstText(quote)} {formatInr(quote.gst)}. Meals {formatInr(quote.food)}.
+        Transport {formatInr(quote.transport)}. Total {formatInr(quote.total)}.
+      </dd>
+    </div>
   )
 }
 

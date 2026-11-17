@@ -120,6 +120,20 @@ function formatMultiplier(seasonInr: number, nonSeasonInr: number): string | nul
   return (hundredths / 100).toString()
 }
 
+export function sampleTotalShift(seasonTotal: number, monsoonTotal: number): string {
+  const amount = seasonTotal - monsoonTotal
+  const label = 'Sample planning rate, not a live tariff.'
+  if (amount === 0) {
+    return `The season sample total matches the monsoon sample. ${label}`
+  }
+  const percent = monsoonTotal === 0 ? null : Math.round((Math.abs(amount) / monsoonTotal) * 100)
+  const change = percent == null ? formatInr(Math.abs(amount)) : `${formatInr(Math.abs(amount))} (${percent}%)`
+  if (amount > 0) {
+    return `The price spikes by ${change}. ${label}`
+  }
+  return `The price goes down by ${change}. ${label}`
+}
+
 export function seasonCalculation(seasonInr: number, nonSeasonInr: number): string {
   const { amount, percent } = seasonHike(seasonInr, nonSeasonInr)
   const multiplier = formatMultiplier(seasonInr, nonSeasonInr)
