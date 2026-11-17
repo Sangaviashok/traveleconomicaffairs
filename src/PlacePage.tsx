@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { formatInr, seasonHike } from './budget'
+import { formatInr, seasonCalculation, seasonHike } from './budget'
 import {
   monsoonMonths,
   osmUrl,
@@ -157,6 +157,9 @@ function SeasonRates({ place }: { place: Place }) {
         months, {monsoonMonths}. The season sample is {formatInr(hike.amount)} a
         night higher ({hike.percent}%). These are planning figures, not a live or
         booked tariff.
+      </p>
+      <p className="season-note">
+        {seasonCalculation(rates.seasonInr, rates.nonSeasonInr)}
       </p>
     </section>
   )

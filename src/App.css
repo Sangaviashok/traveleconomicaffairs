@@ -345,6 +345,11 @@
   margin-bottom: 6px;
 }
 
+.season-rates p + p,
+.budget-total .season-calc {
+  margin-top: 8px;
+}
+
 .score {
   margin-top: 10px;
   color: var(--ink);

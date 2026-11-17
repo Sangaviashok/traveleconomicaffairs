@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   ROOM_GST_LIMIT,
   formatInr,
+  seasonCalculation,
   seasonHike,
   stayBudget,
   type Arrival,
@@ -207,6 +208,9 @@ export function StayBudget({
           for {quote.guests} · {quote.nights} nights · {formatInr(Math.round(quote.total / quote.guests))}{' '}
           per person
         </p>
+        {hike && seasonInr != null ? (
+          <p className="season-calc">{seasonCalculation(seasonInr, nonSeasonInr)}</p>
+        ) : null}
         <dl>
           <div>
             <dt>Stay</dt>

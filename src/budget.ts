@@ -111,3 +111,21 @@ export function seasonHike(
   const percent = nonSeasonInr === 0 ? 0 : Math.round((amount / nonSeasonInr) * 100)
   return { amount, percent }
 }
+
+function formatMultiplier(seasonInr: number, nonSeasonInr: number): string | null {
+  if (nonSeasonInr === 0) return null
+  const hundredths = Math.round((seasonInr / nonSeasonInr) * 100)
+  const rebuilt = Math.round((nonSeasonInr * hundredths) / 100)
+  if (rebuilt !== seasonInr) return null
+  return (hundredths / 100).toString()
+}
+
+export function seasonCalculation(seasonInr: number, nonSeasonInr: number): string {
+  const { amount, percent } = seasonHike(seasonInr, nonSeasonInr)
+  const multiplier = formatMultiplier(seasonInr, nonSeasonInr)
+  const seasonStep =
+    multiplier == null
+      ? `season sample ${formatInr(seasonInr)}`
+      : `season sample ${formatInr(nonSeasonInr)} × ${multiplier} = ${formatInr(seasonInr)}`
+  return `Calculation: monsoon sample ${formatInr(nonSeasonInr)}, ${seasonStep}, spike ${formatInr(amount)}, ${percent}%. Sample planning rate, not a live tariff.`
+}
