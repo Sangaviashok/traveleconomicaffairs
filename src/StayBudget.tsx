@@ -3,7 +3,9 @@ import {
   ROOM_GST_LIMIT,
   formatInr,
   sampleTotalShift,
+  sampleYearTotals,
   seasonCalculation,
+  yearMonths,
   seasonHike,
   stayBudget,
   type Arrival,
@@ -290,26 +292,36 @@ export function StayBudget({
 function BudgetChart({ monsoon, season }: { monsoon: StayBudgetQuote; season: StayBudgetQuote }) {
   const rawId = useId().replace(/:/g, '')
   const glowId = `budget-glow-${rawId}`
-  const peakId = `budget-peak-${rawId}`
+  const totals = sampleYearTotals(season.total, monsoon.total)
   const direction = season.total > monsoon.total ? 'up' : season.total < monsoon.total ? 'down' : 'flat'
-  const palette =
-    direction === 'up'
-      ? { room: '#5dff8a', meals: '#1e9a4a', transport: '#0c6a34', line: '#e7ffe9', panel: '#07140f' }
-      : direction === 'down'
-        ? { room: '#e7b197', meals: '#a85a38', transport: '#6b3a28', line: '#f6d2c4', panel: '#140e0c' }
-        : { room: '#9fd4cc', meals: '#3d7a74', transport: '#1d4f4b', line: '#d5f3ef', panel: '#0c1412' }
-  const max = Math.max(season.total, monsoon.total, 1)
-  const width = 320
-  const height = 168
-  const plotTop = 22
-  const baseline = 132
+  const line = direction === 'down' ? '#f6d2c4' : direction === 'flat' ? '#d5f3ef' : '#b6ffc4'
+  const panel = direction === 'down' ? '#140e0c' : '#07140f'
+  const hi = Math.max(...totals)
+  const lo = Math.min(...totals)
+  const span = hi - lo
+  const width = 360
+  const height = 188
+  const plotLeft = 16
+  const plotRight = 344
+  const plotTop = 18
+  const baseline = 148
   const plotH = baseline - plotTop
-  const yOf = (value: number) => baseline - (value / max) * plotH
-  const barW = 64
-  const monsoonX = 78
-  const seasonX = 178
-  const movement = direction === 'up' ? 'rises' : direction === 'down' ? 'falls' : 'stays level'
-  const label = `Sample budget chart. Monsoon total ${formatInr(monsoon.total)}, season total ${formatInr(season.total)}. The line ${movement}. Sample planning rate, not a live tariff.`
+  const xOf = (index: number) => plotLeft + (index * (plotRight - plotLeft)) / (totals.length - 1)
+  const yOf = (value: number) => {
+    if (span === 0) return (plotTop + baseline) / 2
+    const pad = span * 0.16
+    return baseline - ((value - (lo - pad)) / (span + pad * 2)) * plotH
+  }
+  const path = totals
+    .map((total, index) => `${index === 0 ? 'M' : 'L'}${xOf(index).toFixed(1)} ${yOf(total).toFixed(1)}`)
+    .join(' ')
+  const shape =
+    direction === 'flat'
+      ? 'stays level through the year'
+      : direction === 'up'
+        ? 'falls from March into June and rises from September toward December'
+        : 'rises from March into June and falls from September toward December'
+  const label = `Sample budget line across the year. June through September at the monsoon sample ${formatInr(monsoon.total)}. Mid-December through March at the season sample ${formatInr(season.total)}. The line ${shape}. April, May, October, and November only join those samples. Sample planning rate, not a live tariff.`
 
   return (
     <figure className="budget-chart">
@@ -317,99 +329,35 @@ function BudgetChart({ monsoon, season }: { monsoon: StayBudgetQuote; season: St
         <title>{label}</title>
         <defs>
           <filter id={glowId} filterUnits="userSpaceOnUse" x="0" y="0" width={width} height={height}>
-            <feGaussianBlur stdDeviation="2.8" result="blur" />
+            <feGaussianBlur stdDeviation="2.4" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <radialGradient id={peakId} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={palette.line} stopOpacity="0.85" />
-            <stop offset="100%" stopColor={palette.line} stopOpacity="0" />
-          </radialGradient>
         </defs>
-        <rect width={width} height={height} rx="12" fill={palette.panel} />
-        <StackedBar x={monsoonX} quote={monsoon} yOf={yOf} barW={barW} palette={palette} />
-        <StackedBar x={seasonX} quote={season} yOf={yOf} barW={barW} palette={palette} />
-        <line
-          x1={monsoonX + barW / 2}
-          y1={yOf(monsoon.total)}
-          x2={seasonX + barW / 2}
-          y2={yOf(season.total)}
-          stroke={palette.line}
-          strokeWidth="6"
-          strokeLinecap="round"
-          opacity="0.45"
-          filter={`url(#${glowId})`}
-        />
-        <line
-          x1={monsoonX + barW / 2}
-          y1={yOf(monsoon.total)}
-          x2={seasonX + barW / 2}
-          y2={yOf(season.total)}
-          stroke={palette.line}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <circle cx={monsoonX + barW / 2} cy={yOf(monsoon.total)} r="4" fill={palette.line} />
-        <circle
-          cx={seasonX + barW / 2}
-          cy={yOf(season.total)}
-          r={direction === 'flat' ? 4 : 11}
-          fill={`url(#${peakId})`}
-        />
-        <circle cx={seasonX + barW / 2} cy={yOf(season.total)} r="4.5" fill={palette.line} />
-        <text x={monsoonX + barW / 2} y="154" textAnchor="middle" fill="#c9ddd4" fontSize="12">
-          Monsoon
-        </text>
-        <text x={seasonX + barW / 2} y="154" textAnchor="middle" fill="#c9ddd4" fontSize="12">
-          Season
-        </text>
+        <rect width={width} height={height} rx="12" fill={panel} />
+        <path d={path} fill="none" stroke={line} strokeWidth="7" strokeLinejoin="round" strokeLinecap="round" opacity="0.35" filter={`url(#${glowId})`} />
+        <path d={path} fill="none" stroke={line} strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round" />
+        {totals.map((total, index) => (
+          <circle key={yearMonths[index]} cx={xOf(index)} cy={yOf(total)} r="3.2" fill={line}>
+            <title>
+              {yearMonths[index]} {formatInr(total)}
+            </title>
+          </circle>
+        ))}
+        {yearMonths.map((month, index) => (
+          <text key={month} x={xOf(index)} y="172" textAnchor="middle" fill="#c9ddd4" fontSize="10">
+            {month}
+          </text>
+        ))}
       </svg>
       <figcaption>
-        Room and tax, meals, and transport, stacked to each total. The line {movement}. Sample planning
+        June through September is the monsoon sample. Mid-December through March is the season sample.
+        The line {shape}. April, May, October, and November only join those two samples. Sample planning
         rate, not a live tariff.
       </figcaption>
     </figure>
-  )
-}
-
-function StackedBar({
-  x,
-  quote,
-  yOf,
-  barW,
-  palette,
-}: {
-  x: number
-  quote: StayBudgetQuote
-  yOf: (value: number) => number
-  barW: number
-  palette: { room: string; meals: string; transport: string }
-}) {
-  const parts = [
-    { name: 'Transport', value: quote.transport, fill: palette.transport },
-    { name: 'Meals', value: quote.food, fill: palette.meals },
-    { name: 'Room and tax', value: quote.stay, fill: palette.room },
-  ]
-  let spent = 0
-  return (
-    <g>
-      {parts.map((part) => {
-        const bottom = yOf(spent)
-        spent += part.value
-        const top = yOf(spent)
-        const h = bottom - top
-        if (h <= 0) return null
-        return (
-          <rect key={part.name} x={x} y={top} width={barW} height={h} fill={part.fill}>
-            <title>
-              {part.name} {formatInr(part.value)}
-            </title>
-          </rect>
-        )
-      })}
-    </g>
   )
 }
 
