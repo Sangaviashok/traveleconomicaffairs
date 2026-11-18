@@ -185,6 +185,23 @@
   margin: 2px 0 0;
 }
 
+.budget-chart {
+  margin: 14px 0 0;
+  max-width: 360px;
+}
+
+.budget-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.budget-chart figcaption {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 @media (max-width: 800px) {
   .budget {
     grid-template-columns: 1fr;

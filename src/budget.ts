@@ -124,7 +124,7 @@ export function sampleTotalShift(seasonTotal: number, monsoonTotal: number): str
   const amount = seasonTotal - monsoonTotal
   const label = 'Sample planning rate, not a live tariff.'
   if (amount === 0) {
-    return `The season sample total matches the monsoon sample. ${label}`
+    return `The price does not change. ${label}`
   }
   const percent = monsoonTotal === 0 ? null : Math.round((Math.abs(amount) / monsoonTotal) * 100)
   const change = percent == null ? formatInr(Math.abs(amount)) : `${formatInr(Math.abs(amount))} (${percent}%)`
