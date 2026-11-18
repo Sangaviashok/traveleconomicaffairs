@@ -279,7 +279,7 @@ export function StayBudget({
             </>
           ) : null}
         </dl>
-        {compareSamples && seasonQuote && nonSeasonQuote ? (
+        {seasonQuote && nonSeasonQuote ? (
           <BudgetChart monsoon={nonSeasonQuote} season={seasonQuote} />
         ) : null}
       </div>
