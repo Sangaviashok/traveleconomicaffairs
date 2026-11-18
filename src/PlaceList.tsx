@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react'
-import { city, places, type Place, type PlaceKind } from './data/places'
+import { formatInr, seasonHike } from './budget'
+import {
+  city,
+  monsoonMonths,
+  places,
+  sampleRoomRates,
+  vacationSeasonMonths,
+  type Place,
+  type PlaceKind,
+} from './data/places'
 import {
   compareByHonesty,
   detailLabel,
@@ -162,6 +171,7 @@ function PlaceGroup({
                 </p>
                 <h3>{place.name}</h3>
                 <p className="address">{place.address}</p>
+                <SeasonHint place={place} />
                 <p className="score">
                   {detailLabel(placeScore(place, flagged), notes.length)}
                 </p>
@@ -172,5 +182,19 @@ function PlaceGroup({
         })}
       </ul>
     </section>
+  )
+}
+
+function SeasonHint({ place }: { place: Place }) {
+  const rates = sampleRoomRates(place)
+  if (!rates) return null
+  const hike = seasonHike(rates.seasonInr, rates.nonSeasonInr)
+
+  return (
+    <p className="season-hint">
+      Sample season {formatInr(rates.seasonInr)} a night, {vacationSeasonMonths}. Monsoon
+      sample {formatInr(rates.nonSeasonInr)}, {monsoonMonths}. The season sample is{' '}
+      {formatInr(hike.amount)} a night higher ({hike.percent}%).
+    </p>
   )
 }

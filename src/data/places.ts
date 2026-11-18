@@ -17,7 +17,11 @@ export type Place = {
   id: string
   kind: PlaceKind
   name: string
+  // Sample room rates for stays only. nightlyInr is the monsoon sample.
+  // seasonNightlyInr is that figure plus half, for vacation season.
+  // Neither is a live or booked tariff. Cafes omit both.
   nightlyInr?: number
+  seasonNightlyInr?: number
   area: string
   address: string
   lat: number
@@ -26,6 +30,20 @@ export type Place = {
   osmId: number
   pinNote: string
   reviews: Review[]
+}
+
+export const vacationSeasonMonths = 'mid-December through March'
+export const monsoonMonths = 'June through September'
+export const seasonPeakNote =
+  'Onam week and long weekends can sit closer to the season sample.'
+
+export function sampleRoomRates(
+  place: Place,
+): { seasonInr: number; nonSeasonInr: number } | null {
+  if (place.kind !== 'stay' || place.nightlyInr == null || place.seasonNightlyInr == null) {
+    return null
+  }
+  return { seasonInr: place.seasonNightlyInr, nonSeasonInr: place.nightlyInr }
 }
 
 export const city = {
@@ -40,6 +58,7 @@ export const places: Place[] = [
     kind: 'stay',
     name: 'Hindustan Beach Retreat',
     nightlyInr: 4500,
+    seasonNightlyInr: 6750,
     area: 'Papanasam',
     address: 'Papanasam Beach - Varkala Road, Chaluvila, Varkala, Kerala 695311',
     lat: 8.7328506,
@@ -78,6 +97,7 @@ export const places: Place[] = [
     kind: 'stay',
     name: 'The Gateway Hotel',
     nightlyInr: 8000,
+    seasonNightlyInr: 12000,
     area: 'Papanasam',
     address: 'Varkala - Kallambalam Road, Chaluvila, Varkala, Kerala 695311',
     lat: 8.7344776,
@@ -128,6 +148,7 @@ export const places: Place[] = [
     kind: 'stay',
     name: 'Deshadan',
     nightlyInr: 5200,
+    seasonNightlyInr: 7800,
     area: 'North Cliff',
     address: 'Cliff 2nd street, Varkala, Kerala 695311',
     lat: 8.7392468,
@@ -165,6 +186,7 @@ export const places: Place[] = [
     kind: 'stay',
     name: 'Blue Water',
     nightlyInr: 3200,
+    seasonNightlyInr: 4800,
     area: 'Edava',
     address: 'Anjumukku - Odayam Road, Edava, Varkala, Kerala 695311',
     lat: 8.7502824,

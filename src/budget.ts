@@ -33,7 +33,7 @@ export type StayBudgetQuote = {
   total: number
 }
 
-const ROOM_GST_LIMIT = 7500
+export const ROOM_GST_LIMIT = 7500
 const AIRPORT_TAXI_ONE_WAY = 1600
 const TAXI_SEATS = 4
 const TRAIN_PER_PERSON_ONE_WAY = 50
@@ -101,4 +101,45 @@ const inr = new Intl.NumberFormat('en-IN', {
 
 export function formatInr(amount: number): string {
   return inr.format(amount)
+}
+
+export function seasonHike(
+  seasonInr: number,
+  nonSeasonInr: number,
+): { amount: number; percent: number } {
+  const amount = seasonInr - nonSeasonInr
+  const percent = nonSeasonInr === 0 ? 0 : Math.round((amount / nonSeasonInr) * 100)
+  return { amount, percent }
+}
+
+function formatMultiplier(seasonInr: number, nonSeasonInr: number): string | null {
+  if (nonSeasonInr === 0) return null
+  const hundredths = Math.round((seasonInr / nonSeasonInr) * 100)
+  const rebuilt = Math.round((nonSeasonInr * hundredths) / 100)
+  if (rebuilt !== seasonInr) return null
+  return (hundredths / 100).toString()
+}
+
+export function sampleTotalShift(seasonTotal: number, monsoonTotal: number): string {
+  const amount = seasonTotal - monsoonTotal
+  const label = 'Sample planning rate, not a live tariff.'
+  if (amount === 0) {
+    return `The season sample total matches the monsoon sample. ${label}`
+  }
+  const percent = monsoonTotal === 0 ? null : Math.round((Math.abs(amount) / monsoonTotal) * 100)
+  const change = percent == null ? formatInr(Math.abs(amount)) : `${formatInr(Math.abs(amount))} (${percent}%)`
+  if (amount > 0) {
+    return `The price spikes by ${change}. ${label}`
+  }
+  return `The price goes down by ${change}. ${label}`
+}
+
+export function seasonCalculation(seasonInr: number, nonSeasonInr: number): string {
+  const { amount, percent } = seasonHike(seasonInr, nonSeasonInr)
+  const multiplier = formatMultiplier(seasonInr, nonSeasonInr)
+  const seasonStep =
+    multiplier == null
+      ? `season sample ${formatInr(seasonInr)}`
+      : `season sample ${formatInr(nonSeasonInr)} × ${multiplier} = ${formatInr(seasonInr)}`
+  return `Calculation: monsoon sample ${formatInr(nonSeasonInr)}, ${seasonStep}, spike ${formatInr(amount)}, ${percent}%. Sample planning rate, not a live tariff.`
 }
