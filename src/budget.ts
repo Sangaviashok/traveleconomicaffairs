@@ -120,6 +120,45 @@ function formatMultiplier(seasonInr: number, nonSeasonInr: number): string | nul
   return (hundredths / 100).toString()
 }
 
+export const yearMonths = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
+
+function betweenSamples(from: number, to: number, step: number): number {
+  return Math.round(from + (to - from) * step)
+}
+
+// January–March and December use the season sample. June–September use the
+// monsoon sample. April, May, October, and November are only the join
+// between those two samples, not a third tariff.
+export function sampleYearTotals(seasonTotal: number, monsoonTotal: number): number[] {
+  return [
+    seasonTotal,
+    seasonTotal,
+    seasonTotal,
+    betweenSamples(seasonTotal, monsoonTotal, 1 / 3),
+    betweenSamples(seasonTotal, monsoonTotal, 2 / 3),
+    monsoonTotal,
+    monsoonTotal,
+    monsoonTotal,
+    monsoonTotal,
+    betweenSamples(monsoonTotal, seasonTotal, 1 / 3),
+    betweenSamples(monsoonTotal, seasonTotal, 2 / 3),
+    seasonTotal,
+  ]
+}
+
 export function sampleTotalShift(seasonTotal: number, monsoonTotal: number): string {
   const amount = seasonTotal - monsoonTotal
   const label = 'Sample planning rate, not a live tariff.'
